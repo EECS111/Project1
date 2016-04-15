@@ -47,11 +47,11 @@ int main(int argc, char** argv) {
 		shared_memory = (int*)shmat(shmid, NULL,0);
 		shd_matrix = (shd_mem*)shared_memory;
 
-		shd_matrix->A = (int*)malloc(/* fill here */);
-		shd_matrix->B = (int*)malloc(/* fill here */);
+		shd_matrix->A = (int*)malloc(matrix_size*matrix_size);
+		shd_matrix->B = (int*)malloc(matrix_size*matrix_size);
 
 		// allocate shared memory for result		
-		shm_2d = shmget(IPC_PRIVATE, /* fill here */, IPC_CREAT | 0666);
+		shm_2d = shmget(IPC_PRIVATE, sizeof(shd_mem) * sizeof(shd_mem), IPC_CREAT | 0666);
 		output = (int*)shmat(shm_2d, NULL, 0);
 
 
@@ -62,7 +62,10 @@ int main(int argc, char** argv) {
 
 
 		for(i = 0; i < thread_num; i++) {
-			if (/* fill here */) {			
+			
+
+			// PROMBLEM HERE
+			if (thread_num == 0) {			
 				pid = fork();
 				shd_matrix->children[i] = getpid();
 			}
@@ -83,7 +86,7 @@ int main(int argc, char** argv) {
 
 			// Map output memory
 			shd_matrix = (shd_mem*)shared_memory;
-			output = (int*)shmat(/* fill here */, NULL, 0);;
+			output = (int*)shmat(shm_2d, NULL, 0);;
 
 
 			for (i=0; i<shd_matrix->ch_num; i++) {
@@ -94,16 +97,16 @@ int main(int argc, char** argv) {
 			}
 			
 			printf("Child process (%d)...\n", order);
-			start = /* fill here */;
-			end = /* fill here */;
+			start = order * (matrix_size * matrix_size)/thread_num;
+			end = start + (matrix_size * matrix_size)/thread_num;
 			
-			for (/* fill here */) {
-				for (j=0;j<matrix_size;j++) {
+			for (i=start; i<end;i++) {
+				for (j=0;j<matrix_size;j++){
 					sum=0;
 					for (e=0;e<matrix_size;e++) {
-						sum+=shd_matrix->A[/* fill here */]*shd_matrix->B[/* fill here */];
+						sum+=shd_matrix->A[e+j*matrix_size]*shd_matrix->B[i+e*matrix_size];
 					}
-					output[/* fill here */]=sum;
+					output[i+j*matrix_size]=sum;
 				}
 			}
 		}
@@ -113,15 +116,15 @@ int main(int argc, char** argv) {
 
 			// wait completion of children
 			wait();
-			C_parent = (int*)malloc(/* fill here */);
+			C_parent = (int*)malloc(matrix_size * matrix_size);
 	
 			for (i=0;i<matrix_size;i++) {
 				for (j=0;j<matrix_size;j++) {
 					sum=0;
 					for (e=0;e<matrix_size;e++) {						
-						sum+=shd_matrix->A[/* fill here */]*shd_matrix->B[/* fill here */];
-					}	.
-					C_parent[/* fill here */]=sum;
+						sum+=shd_matrix->A[e+j*matrix_size]*shd_matrix->B[i+e*matrix_size];
+					}	
+					C_parent[i+j*matrix_size]=sum;
 				}
 			}
 
@@ -135,8 +138,13 @@ int main(int argc, char** argv) {
 			VerifyOutput(C_parent, output, matrix_size);
 
 			printf("Output matrix: \n");
+
 			Print2DMatrix(output, matrix_size);
 
+
+			printf("Parent matrix\n");
+
+			Print2DMatrix(C_parent, matrix_size);
 
 			// The shared memory is detached and then deleted
 		    if (shmdt(shared_memory) == -1) {
