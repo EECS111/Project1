@@ -14,8 +14,7 @@ do
 
 		#SC 2016-04-15: Not sure about this line, it's not doing anything....
 		tmp=$(./matrixmul $m $t | grep -o Child | wc -l)
-		# Fill here
-		total_child=$(($total_child+$t))
+		total_child=$(($total_child+$tmp))
 	done
 done
 
