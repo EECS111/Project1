@@ -47,11 +47,11 @@ int main(int argc, char** argv) {
 		shared_memory = (int*)shmat(shmid, NULL,0);
 		shd_matrix = (shd_mem*)shared_memory;
 
-		shd_matrix->A = (int*)malloc(matrix_size*matrix_size);
-		shd_matrix->B = (int*)malloc(matrix_size*matrix_size);
+		shd_matrix->A = (int*)malloc(matrix_size*matrix_size*sizeof(int));
+		shd_matrix->B = (int*)malloc(matrix_size*matrix_size*sizeof(int));
 
 		// allocate shared memory for result		
-		shm_2d = shmget(IPC_PRIVATE, sizeof(shd_mem) * sizeof(shd_mem), IPC_CREAT | 0666);
+		shm_2d = shmget(IPC_PRIVATE, matrix_size*matrix_size*sizeof(int), IPC_CREAT | 0666);
 		output = (int*)shmat(shm_2d, NULL, 0);
 
 
@@ -60,12 +60,11 @@ int main(int argc, char** argv) {
 		GenRandomInput(shd_matrix->A, matrix_size);
 		GenRandomInput(shd_matrix->B, matrix_size);
 
-
+		pid_t parent;
+		parent = getpid();
 		for(i = 0; i < thread_num; i++) {
 			
-
-			// PROMBLEM HERE
-			if (thread_num == 0) {			
+			if (getpid() == parent) {			
 				pid = fork();
 				shd_matrix->children[i] = getpid();
 			}
@@ -97,16 +96,16 @@ int main(int argc, char** argv) {
 			}
 			
 			printf("Child process (%d)...\n", order);
-			start = order * (matrix_size * matrix_size)/thread_num;
-			end = start + (matrix_size * matrix_size)/thread_num;
+			start = order * (matrix_size /(thread_num));
+			end = start + (matrix_size /(thread_num));
 			
 			for (i=start; i<end;i++) {
 				for (j=0;j<matrix_size;j++){
 					sum=0;
 					for (e=0;e<matrix_size;e++) {
-						sum+=shd_matrix->A[e+j*matrix_size]*shd_matrix->B[i+e*matrix_size];
+						sum+=shd_matrix->A[e+i*matrix_size]*shd_matrix->B[j+e*matrix_size];
 					}
-					output[i+j*matrix_size]=sum;
+					output[j+i*matrix_size]=sum;
 				}
 			}
 		}
@@ -116,15 +115,15 @@ int main(int argc, char** argv) {
 
 			// wait completion of children
 			wait();
-			C_parent = (int*)malloc(matrix_size * matrix_size);
+			C_parent = (int*)malloc(matrix_size * matrix_size*sizeof(int));
 	
 			for (i=0;i<matrix_size;i++) {
 				for (j=0;j<matrix_size;j++) {
 					sum=0;
 					for (e=0;e<matrix_size;e++) {						
-						sum+=shd_matrix->A[e+j*matrix_size]*shd_matrix->B[i+e*matrix_size];
+						sum+=shd_matrix->A[e+i*matrix_size]*shd_matrix->B[j+e*matrix_size];
 					}	
-					C_parent[i+j*matrix_size]=sum;
+					C_parent[j+i*matrix_size]=sum;
 				}
 			}
 
