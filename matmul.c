@@ -103,9 +103,9 @@ int main(int argc, char** argv) {
 				for (j=0;j<matrix_size;j++){
 					sum=0;
 					for (e=0;e<matrix_size;e++) {
-						sum+=shd_matrix->A[e+i*matrix_size]*shd_matrix->B[j+e*matrix_size];
+						sum+=shd_matrix->A[e+j*matrix_size]*shd_matrix->B[i+e*matrix_size];
 					}
-					output[j+i*matrix_size]=sum;
+					output[i+j*matrix_size]=sum;
 				}
 			}
 		}
@@ -121,9 +121,9 @@ int main(int argc, char** argv) {
 				for (j=0;j<matrix_size;j++) {
 					sum=0;
 					for (e=0;e<matrix_size;e++) {						
-						sum+=shd_matrix->A[e+i*matrix_size]*shd_matrix->B[j+e*matrix_size];
+						sum+=shd_matrix->A[e+j*matrix_size]*shd_matrix->B[i+e*matrix_size];
 					}	
-					C_parent[j+i*matrix_size]=sum;
+					C_parent[i+j*matrix_size]=sum;
 				}
 			}
 
