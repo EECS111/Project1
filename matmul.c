@@ -63,7 +63,6 @@ int main(int argc, char** argv) {
 		pid_t parent;
 		parent = getpid();
 		for(i = 0; i < thread_num; i++) {
-			
 			if (getpid() == parent) {			
 				pid = fork();
 				shd_matrix->children[i] = getpid();
@@ -137,13 +136,8 @@ int main(int argc, char** argv) {
 			VerifyOutput(C_parent, output, matrix_size);
 
 			printf("Output matrix: \n");
-
 			Print2DMatrix(output, matrix_size);
 
-
-			printf("Parent matrix\n");
-
-			Print2DMatrix(C_parent, matrix_size);
 
 			// The shared memory is detached and then deleted
 		    if (shmdt(shared_memory) == -1) {
