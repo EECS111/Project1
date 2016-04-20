@@ -16,8 +16,6 @@ do
 	done
 done
 
-# Fill here: print total how many child processes
-# were used to calculate matrix multiplication
 echo "Total $total_child children are used to perform matrix multiplication..."
 
 
